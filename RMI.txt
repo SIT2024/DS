@@ -1,0 +1,67 @@
+client.java:
+
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+
+// Client class
+public class RMIClient {
+    public static void main(String[] args) {
+        try {
+            // Get the remote object reference
+            Registry registry = LocateRegistry.getRegistry("localhost", 1099);
+            RemoteInterface remoteObj = (RemoteInterface) registry.lookup("Server");
+
+            // Call the remote method
+            String response = remoteObj.sendMessage("Hello from client!");
+            System.out.println("Response from server: " + response);
+        } catch (Exception e) {
+            System.err.println("Client exception: " + e.toString());
+            e.printStackTrace();
+        }
+    }
+}
+
+------------------------------------------------------------------------------------------------------------------------------
+server.java:
+
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
+
+// Define the remote interface
+interface RemoteInterface extends Remote {
+    String sendMessage(String message) throws RemoteException;
+}
+
+// Implement the remote interface
+class RemoteImplementation extends UnicastRemoteObject implements RemoteInterface {
+    protected RemoteImplementation() throws RemoteException {
+        super();
+    }
+
+    @Override
+    public String sendMessage(String message) {
+        return "Server received: " + message;
+    }
+}
+
+// Server class
+public class RMIServer {
+    public static void main(String[] args) {
+        try {
+            // Create and export the remote object
+            RemoteInterface remoteObj = new RemoteImplementation();
+            Registry registry = LocateRegistry.createRegistry(1099);
+            registry.rebind("Server", remoteObj);
+            System.out.println("Server is running...");
+        } catch (Exception e) {
+            System.err.println("Server exception: " + e.toString());
+            e.printStackTrace();
+        }
+    }
+}
+
+
+
